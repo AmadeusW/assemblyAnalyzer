@@ -10,6 +10,7 @@ namespace AA
     class MemberData
     {
         private EventInfo e;
+        private ConstructorInfo c;
 
         public string Name { get; }
         public List<string> Modifiers { get; } = new List<string>();
@@ -34,6 +35,7 @@ namespace AA
             if (info.IsStatic) Modifiers.Add("static");
             if (info.IsPrivate) Modifiers.Add("private");
             if (info.IsPublic) Modifiers.Add("public");
+            if (info.IsInitOnly) Modifiers.Add("readonly");
         }
 
         public MemberData(TypeInfo info)
@@ -53,6 +55,9 @@ namespace AA
             if (info.IsStatic) Modifiers.Add("static");
             if (info.IsPrivate) Modifiers.Add("private");
             if (info.IsPublic) Modifiers.Add("public");
+            if (info.IsFinal) Modifiers.Add("final");
+            if (info.IsVirtual) Modifiers.Add("virtual");
+            if (info.IsAbstract) Modifiers.Add("abstract");
         }
 
         public MemberData(EventInfo info)
@@ -61,6 +66,18 @@ namespace AA
             Kind = "Event";
             Type = info.EventHandlerType.Name;
             if (info.IsMulticast) Modifiers.Add("multicast");
+        }
+
+        public MemberData(ConstructorInfo info)
+        {
+            Name = info.Name;
+            Kind = "Constructor";
+            if (info.IsStatic) Modifiers.Add("static");
+            if (info.IsPublic) Modifiers.Add("public");
+            if (info.IsPrivate) Modifiers.Add("private");
+            if (info.IsFinal) Modifiers.Add("final");
+            if (info.IsVirtual) Modifiers.Add("virtual");
+            if (info.IsAbstract) Modifiers.Add("abstract");
         }
     }
 }

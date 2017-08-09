@@ -45,6 +45,8 @@ namespace AA
         {
             if (member is FieldInfo i)
                 sb.AppendLine(new MemberData(i).ToString());
+            else if (member is ConstructorInfo c)
+                sb.AppendLine(new MemberData(c).ToString());
             else if (member is MethodInfo m)
                 sb.AppendLine(new MemberData(m).ToString());
             else if (member is EventInfo e)
