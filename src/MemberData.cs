@@ -9,6 +9,8 @@ namespace AA
 {
     class MemberData
     {
+        private EventInfo e;
+
         public string Name { get; }
         public List<string> Modifiers { get; } = new List<string>();
         public string Type { get; }
@@ -51,6 +53,14 @@ namespace AA
             if (info.IsStatic) Modifiers.Add("static");
             if (info.IsPrivate) Modifiers.Add("private");
             if (info.IsPublic) Modifiers.Add("public");
+        }
+
+        public MemberData(EventInfo info)
+        {
+            Name = info.Name;
+            Kind = "Event";
+            Type = info.EventHandlerType.Name;
+            if (info.IsMulticast) Modifiers.Add("multicast");
         }
     }
 }
