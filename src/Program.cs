@@ -11,6 +11,8 @@ namespace AA
         static IEnumerable<string> dllsToAnalyze;
         static IEnumerable<string> moreDlls;
 
+        // Sample commandline args:
+        // C:\git\platform\insertion C:\git\platform\src C:\git\platform\output
         static void Main(string[] args)
         {
             if (args.Length != 3) throw new ArgumentException("Usage: AA AnalyzePath AssemblySearchPath OutputPath");
