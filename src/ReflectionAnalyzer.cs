@@ -47,6 +47,8 @@ namespace AA
                 sb.AppendLine(new MemberData(i).ToString());
             else if (member is MethodInfo m)
                 sb.AppendLine(new MemberData(m).ToString());
+            else if (member is EventInfo e)
+                sb.AppendLine(new MemberData(e).ToString());
             else
                 sb.AppendLine(new MemberData(member.Name).ToString());
         }

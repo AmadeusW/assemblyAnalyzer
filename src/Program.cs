@@ -8,16 +8,19 @@ namespace AA
     class Program
     {
         static IAnalyzer dllAnalyzer = new ReflectionAnalyzer();
-        static IEnumerable<string> allDlls;
+        static IEnumerable<string> dllsToAnalyze;
+        static IEnumerable<string> moreDlls;
 
         static void Main(string[] args)
         {
-            if (args.Length != 2) throw new ArgumentException("Usage: AA SearchPath OutputPath");
+            if (args.Length != 3) throw new ArgumentException("Usage: AA AnalyzePath AssemblySearchPath OutputPath");
             var sourcePath = args[0].Trim();
-            var outputPath = args[1].Trim();
+            var moreDllsPath = args[1].Trim();
+            var outputPath = args[2].Trim();
 
             if (!Directory.Exists(sourcePath)) throw new DirectoryNotFoundException($"Directory {sourcePath} does not exist");
-            allDlls = Directory.EnumerateFiles(sourcePath, "*.dll", SearchOption.AllDirectories);
+            dllsToAnalyze = Directory.EnumerateFiles(sourcePath, "*.dll", SearchOption.AllDirectories);
+            moreDlls = Directory.EnumerateFiles(moreDllsPath, "*.dll", SearchOption.AllDirectories);
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             ProcessAllAssemblies(outputPath);
@@ -27,7 +30,7 @@ namespace AA
 
         static void ProcessAllAssemblies(string outputPath)
         {
-            foreach (var dll in allDlls)
+            foreach (var dll in dllsToAnalyze)
             {
                 var name = Path.GetFileNameWithoutExtension(dll);
                 try
@@ -58,9 +61,11 @@ namespace AA
                 }
             }
 
-            foreach (var dll in allDlls)
+            var assemblyCandidateFileName = assemblyFullName.Substring(0, assemblyFullName.IndexOf(',')) + ".dll";
+
+            foreach (var dll in moreDlls)
             {
-                if (dll.EndsWith(assemblyFullName + ".dll"))
+                if (dll.EndsWith(assemblyCandidateFileName))
                 {
                     var loadedAssembly = Assembly.LoadFile(dll);
                     return loadedAssembly;
