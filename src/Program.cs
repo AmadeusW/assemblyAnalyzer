@@ -13,6 +13,7 @@ namespace AA
 
         // Sample commandline args:
         // C:\git\platform\insertion C:\git\platform\src C:\git\platform\output
+        // "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE\CommonExtensions\Microsoft\Editor" "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" C:\git\platform\output\programFiles
         static void Main(string[] args)
         {
             if (args.Length != 3) throw new ArgumentException("Usage: AA AnalyzePath AssemblySearchPath OutputPath");

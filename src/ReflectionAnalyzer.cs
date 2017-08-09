@@ -13,7 +13,7 @@ namespace AA
         {
             var dll = Assembly.LoadFile(dllPath);
             var sb = new IndentingStringBuilder();
-            foreach (var type in dll.DefinedTypes)
+            foreach (var type in dll.DefinedTypes.OrderBy(n => n.Name))
             {
                 Analyze(sb, type);
             }
@@ -22,7 +22,7 @@ namespace AA
             sb.AppendLine("-----");
             sb.AppendLine("Resources:");
             sb.IncreaseIndentation();
-            dll.GetManifestResourceNames().All(n => { sb.AppendLine(n); return true; });
+            dll.GetManifestResourceNames().OrderBy(n => n).All(n => { sb.AppendLine(n); return true; });
             sb.DecreaseIndentation();
 
             return sb.ToString();
@@ -44,12 +44,12 @@ namespace AA
 
         private void Analyze(IndentingStringBuilder sb, IEnumerable<MemberInfo> members)
         {
-            members.All(n => { Analyze(sb, n); return true; });
+            members.OrderBy(n => n.Name).All(n => { Analyze(sb, n); return true; });
         }
 
         private void Analyze(IndentingStringBuilder sb, IEnumerable<TypeInfo> nestedTypes)
         {
-            nestedTypes.All(n => { Analyze(sb, n); return true; });
+            nestedTypes.OrderBy(n => n.Name).All(n => { Analyze(sb, n); return true; });
         }
 
         private void Analyze(IndentingStringBuilder sb, TypeInfo type)
@@ -64,7 +64,6 @@ namespace AA
             // sb.AppendLine("--- members:"); Analyze(sb, type.DeclaredMembers); sb.AppendLine("---"); // for debugging, reveal all members
             if (type.DeclaredNestedTypes.Any())
             {
-                sb.AppendLine("--- nested types:");
                 Analyze(sb, type.DeclaredNestedTypes);
             }
 
