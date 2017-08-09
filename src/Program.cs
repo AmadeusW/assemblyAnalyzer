@@ -14,6 +14,7 @@ namespace AA
             var outputPath = args[1].Trim();
             ProcessAllAssemblies(sourcePath, outputPath);
             Console.WriteLine("Done.");
+            Console.ReadLine();
         }
 
         static void ProcessAllAssemblies(string sourcePath, string outputPath)
@@ -22,8 +23,17 @@ namespace AA
             var allDlls = Directory.EnumerateFiles(sourcePath, "*.dll", SearchOption.AllDirectories);
             foreach (var dll in allDlls)
             {
-                var output = dllAnalyzer.Analyze(dll);
-                File.WriteAllText(Path.Combine(outputPath, Path.GetFileNameWithoutExtension(dll) + ".txt"), output);
+                var name = Path.GetFileNameWithoutExtension(dll);
+                try
+                {
+                    var output = dllAnalyzer.Analyze(dll);
+                    File.WriteAllText(Path.Combine(outputPath, name + ".txt"), output);
+                    Console.WriteLine($"OK: {name}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {name}: {ex.Message}");
+                }
             }
         }
     }
