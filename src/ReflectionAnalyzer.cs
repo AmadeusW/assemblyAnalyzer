@@ -13,7 +13,6 @@ namespace AA
         {
             var dll = Assembly.LoadFile(dllPath);
             var sb = new StringBuilder();
-
             sb.AppendLine("");
             sb.AppendLine("---");
             sb.AppendLine("DefinedTypes");
@@ -60,20 +59,25 @@ namespace AA
             members.All(n => { Analyze(sb, n); return true; });
         }
 
+        private void Analyze(StringBuilder sb, IEnumerable<TypeInfo> nestedTypes)
+        {
+            nestedTypes.All(n => { Analyze(sb, n); return true; });
+        }
+
         private void Analyze(StringBuilder sb, TypeInfo type)
         {
             sb.AppendLine(new MemberData(type).ToString());
 
-            sb.AppendLine("- DeclaredConstructors");
             Analyze(sb, type.DeclaredConstructors);
-            sb.AppendLine("- DeclaredMethods");
             Analyze(sb, type.DeclaredMethods);
-            sb.AppendLine("- DeclaredEvents");
             Analyze(sb, type.DeclaredEvents);
-            sb.AppendLine("- DeclaredFields");
             Analyze(sb, type.DeclaredFields);
-            sb.AppendLine("- DeclaredMembers");
-            Analyze(sb, type.DeclaredMembers);
+            // sb.AppendLine("--- members:"); Analyze(sb, type.DeclaredMembers); sb.AppendLine("---"); // for debugging, reveal all members
+            if (type.DeclaredNestedTypes.Any())
+            {
+                sb.AppendLine("--- nested types:");
+                Analyze(sb, type.DeclaredNestedTypes);
+            }
         }
     }
 }
