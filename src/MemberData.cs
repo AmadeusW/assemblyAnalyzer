@@ -52,17 +52,5 @@ namespace AA
             if (info.IsPrivate) Modifiers.Add("private");
             if (info.IsPublic) Modifiers.Add("public");
         }
-
-        public MemberData(PropertyInfo info)
-        {
-            Name = info.Name;
-            Kind = "Property";
-            Type = info.PropertyType.Name;
-            if (info.GetMethod?.IsStatic == true || info.SetMethod?.IsStatic == true) Modifiers.Add("static");
-            if (info.GetMethod?.IsPublic == true) Modifiers.Add("publicGet");
-            if (info.SetMethod?.IsPublic == true) Modifiers.Add("publicSet");
-            if (info.GetMethod?.IsPrivate == true) Modifiers.Add("privateGet");
-            if (info.SetMethod?.IsPrivate == true) Modifiers.Add("privateSet");
-        }
     }
 }

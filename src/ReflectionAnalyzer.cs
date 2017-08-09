@@ -47,8 +47,6 @@ namespace AA
                 sb.AppendLine(new MemberData(i).ToString());
             else if (member is MethodInfo m)
                 sb.AppendLine(new MemberData(m).ToString());
-            else if (member is PropertyInfo p)
-                sb.AppendLine(new MemberData(p).ToString());
             else
                 sb.AppendLine(new MemberData(member.Name).ToString());
         }
@@ -64,8 +62,6 @@ namespace AA
 
             sb.AppendLine("- DeclaredConstructors");
             Analyze(sb, type.DeclaredConstructors);
-            sb.AppendLine("- DeclaredProperties");
-            Analyze(sb, type.DeclaredProperties);
             sb.AppendLine("- DeclaredMethods");
             Analyze(sb, type.DeclaredMethods);
             sb.AppendLine("- DeclaredEvents");
