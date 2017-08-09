@@ -6,6 +6,6 @@ namespace AA
 {
     interface IAnalyzer
     {
-        void Analyze(string dllPath, string outputPath);
+        string Analyze(string dllPath);
     }
 }

@@ -1,14 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace AA
 {
     class ReflectionAnalyzer : IAnalyzer
     {
-        public void Analyze(string dllPath, string outputPath)
+        public string Analyze(string dllPath)
         {
-            throw new NotImplementedException();
+            var dll = Assembly.LoadFile(dllPath);
+            var sb = new StringBuilder();
+
+
+            return sb.ToString();
         }
     }
 }

@@ -22,7 +22,8 @@ namespace AA
             var allDlls = Directory.EnumerateFiles(sourcePath, "*.dll", SearchOption.AllDirectories);
             foreach (var dll in allDlls)
             {
-                dllAnalyzer.Analyze(dll, outputPath);
+                var output = dllAnalyzer.Analyze(dll);
+                File.WriteAllText(Path.Combine(outputPath, Path.GetFileNameWithoutExtension(dll) + ".txt"), output);
             }
         }
     }
