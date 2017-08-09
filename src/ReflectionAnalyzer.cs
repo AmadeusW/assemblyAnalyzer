@@ -27,7 +27,7 @@ namespace AA
             sb.AppendLine("---");
             sb.AppendLine("ExportedTypes");
             sb.AppendLine("---");
-            foreach (var type in dll.DefinedTypes)
+            foreach (var type in dll.ExportedTypes)
             {
                 Analyze(sb, type);
             }
