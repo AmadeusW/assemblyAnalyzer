@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IAnalyzer.cs" />
+    <Compile Include="IndentingStringBuilder.cs" />
     <Compile Include="MemberData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ReflectionAnalyzer.cs" />

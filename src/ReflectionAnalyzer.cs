@@ -12,35 +12,23 @@ namespace AA
         public string Analyze(string dllPath)
         {
             var dll = Assembly.LoadFile(dllPath);
-            var sb = new StringBuilder();
-            sb.AppendLine("");
-            sb.AppendLine("---");
-            sb.AppendLine("DefinedTypes");
-            sb.AppendLine("---");
+            var sb = new IndentingStringBuilder();
             foreach (var type in dll.DefinedTypes)
             {
                 Analyze(sb, type);
             }
 
             sb.AppendLine("");
-            sb.AppendLine("---");
-            sb.AppendLine("ExportedTypes");
-            sb.AppendLine("---");
-            foreach (var type in dll.ExportedTypes)
-            {
-                Analyze(sb, type);
-            }
-
-            sb.AppendLine("");
-            sb.AppendLine("---");
-            sb.AppendLine("GetManifestResourceNames");
-            sb.AppendLine("---");
-            dll.GetManifestResourceNames().Select(n => sb.AppendLine(n));
+            sb.AppendLine("-----");
+            sb.AppendLine("Resources:");
+            sb.IncreaseIndentation();
+            dll.GetManifestResourceNames().All(n => { sb.AppendLine(n); return true; });
+            sb.DecreaseIndentation();
 
             return sb.ToString();
         }
 
-        private void Analyze(StringBuilder sb, MemberInfo member)
+        private void Analyze(IndentingStringBuilder sb, MemberInfo member)
         {
             if (member is FieldInfo i)
                 sb.AppendLine(new MemberData(i).ToString());
@@ -54,19 +42,20 @@ namespace AA
                 sb.AppendLine(new MemberData(member.Name).ToString());
         }
 
-        private void Analyze(StringBuilder sb, IEnumerable<MemberInfo> members)
+        private void Analyze(IndentingStringBuilder sb, IEnumerable<MemberInfo> members)
         {
             members.All(n => { Analyze(sb, n); return true; });
         }
 
-        private void Analyze(StringBuilder sb, IEnumerable<TypeInfo> nestedTypes)
+        private void Analyze(IndentingStringBuilder sb, IEnumerable<TypeInfo> nestedTypes)
         {
             nestedTypes.All(n => { Analyze(sb, n); return true; });
         }
 
-        private void Analyze(StringBuilder sb, TypeInfo type)
+        private void Analyze(IndentingStringBuilder sb, TypeInfo type)
         {
             sb.AppendLine(new MemberData(type).ToString());
+            sb.IncreaseIndentation();
 
             Analyze(sb, type.DeclaredConstructors);
             Analyze(sb, type.DeclaredMethods);
@@ -78,6 +67,8 @@ namespace AA
                 sb.AppendLine("--- nested types:");
                 Analyze(sb, type.DeclaredNestedTypes);
             }
+
+            sb.DecreaseIndentation();
         }
     }
 }
