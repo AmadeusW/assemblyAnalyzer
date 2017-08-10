@@ -11,9 +11,13 @@ namespace AA
         static IEnumerable<string> dllsToAnalyze;
         static IEnumerable<string> moreDlls;
 
-        // Sample commandline args:
+        // Argument 1: Path to a single DLL to analyze or to a directory whose all DLLs will be analyzed
+        // Argument 2: Path to directory that will be scanned for dependent assemblies
+        // Argument 3: Path to output directory where artifacts will be written to
+        //
+        // Sample args for debugging:
         // C:\git\platform\insertion C:\git\platform\src C:\git\platform\output
-        // "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE\CommonExtensions\Microsoft\Editor" "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" C:\git\platform\output\programFiles
+        // "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.Text.Internal.dll" "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" C:\git\platform\output\programfiles
         static void Main(string[] args)
         {
             if (args.Length != 3) throw new ArgumentException("Usage: AA AnalyzePath AssemblySearchPath OutputPath");
@@ -21,11 +25,24 @@ namespace AA
             var moreDllsPath = args[1].Trim();
             var outputPath = args[2].Trim();
 
-            if (!Directory.Exists(sourcePath)) throw new DirectoryNotFoundException($"Directory {sourcePath} does not exist");
-            dllsToAnalyze = Directory.EnumerateFiles(sourcePath, "*.dll", SearchOption.AllDirectories);
-            moreDlls = Directory.EnumerateFiles(moreDllsPath, "*.dll", SearchOption.AllDirectories);
+            if (!Directory.Exists(moreDllsPath)) throw new DirectoryNotFoundException($"Directory {moreDllsPath} does not exist");
+            if (!Directory.Exists(outputPath)) Directory.CreateDirectory(outputPath);
 
+            if (File.Exists(sourcePath))
+            {
+                // Process single DLL
+                dllsToAnalyze = new string[] { sourcePath };
+            }
+            else
+            {
+                // Process all DLLs in a directory
+                if (!Directory.Exists(sourcePath)) throw new DirectoryNotFoundException($"Directory {sourcePath} does not exist");
+                dllsToAnalyze = Directory.EnumerateFiles(sourcePath, "*.dll", SearchOption.AllDirectories);
+            }
+
+            moreDlls = Directory.EnumerateFiles(moreDllsPath, "*.dll", SearchOption.AllDirectories);
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
             ProcessAllAssemblies(outputPath);
             Console.WriteLine("Done.");
             Console.ReadLine();
