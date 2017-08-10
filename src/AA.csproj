@@ -47,6 +47,7 @@
     <Compile Include="MemberData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ReflectionAnalyzer.cs" />
+    <Compile Include="ResourceAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

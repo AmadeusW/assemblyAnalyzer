@@ -1,13 +1,16 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Resources;
 
 namespace AA
 {
     class Program
     {
         static IAnalyzer dllAnalyzer = new ReflectionAnalyzer();
+        static IAnalyzer resourceAnalyzer = new ResourceAnalyzer();
         static IEnumerable<string> dllsToAnalyze;
         static IEnumerable<string> moreDlls;
 
@@ -55,8 +58,9 @@ namespace AA
                 var name = Path.GetFileNameWithoutExtension(dll);
                 try
                 {
-                    var output = dllAnalyzer.Analyze(dll);
-                    File.WriteAllText(Path.Combine(outputPath, name + ".txt"), output);
+                    var savePath = Path.Combine(outputPath, name + ".txt");
+                    File.WriteAllText(savePath, dllAnalyzer.Analyze(dll));
+                    File.AppendAllText(savePath, resourceAnalyzer.Analyze(dll));
                     Console.WriteLine($"OK: {name}");
                 }
                 catch (Exception ex)
