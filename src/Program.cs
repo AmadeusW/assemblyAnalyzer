@@ -21,6 +21,7 @@ namespace AA
         // Sample args for debugging:
         // C:\git\platform\insertion C:\git\platform\src C:\git\platform\output
         // "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.Text.Internal.dll" "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" C:\git\platform\output\programfiles
+        // D:\assemblies "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" C:\git\platform\output\programfiles
         static void Main(string[] args)
         {
             if (args.Length != 3) throw new ArgumentException("Usage: AA AnalyzePath AssemblySearchPath OutputPath");
