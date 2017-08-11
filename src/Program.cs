@@ -65,6 +65,13 @@ namespace AA
                     File.AppendAllText(savePath, resourceAnalyzer.Analyze(dll));
                     Console.WriteLine($"OK: {name}");
                 }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    foreach (var e in ex.LoaderExceptions)
+                    {
+                        Console.WriteLine($"Error: {name}: {e.Message}");
+                    }
+                }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error: {name}: {ex.Message}");
