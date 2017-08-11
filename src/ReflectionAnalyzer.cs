@@ -17,14 +17,6 @@ namespace AA
             {
                 Analyze(sb, type);
             }
-
-            sb.AppendLine("");
-            sb.AppendLine("-----");
-            sb.AppendLine("Resources:");
-            sb.IncreaseIndentation();
-            dll.GetManifestResourceNames().OrderBy(n => n).All(n => { sb.AppendLine(n); return true; });
-            sb.DecreaseIndentation();
-
             return sb.ToString();
         }
 

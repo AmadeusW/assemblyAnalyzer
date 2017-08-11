@@ -30,7 +30,7 @@ namespace AA
         public MemberData(FieldInfo info)
         {
             Name = info.Name;
-            Kind = "Field";
+            Kind = info.MemberType.ToString();
             Type = info.FieldType.Name;
             if (info.IsStatic) Modifiers.Add("static");
             if (info.IsPrivate) Modifiers.Add("private");
@@ -41,16 +41,17 @@ namespace AA
         public MemberData(TypeInfo info)
         {
             Name = info.Name;
-            Kind = "Type";
+            Kind = info.MemberType.ToString();
             if (info.IsClass) Modifiers.Add("class");
+            if (info.CustomAttributes.Any(n => n.ToString() == "[System.Runtime.CompilerServices.CompilerGeneratedAttribute()]")) Modifiers.Add("compilerGenerated");
             if (info.IsGenericType) Modifiers.Add("generic");
             if (info.IsPublic) Modifiers.Add("public");
         }
 
         public MemberData(MethodInfo info)
         {
-            Name = info.Name;
-            Kind = "Method";
+            Name = info.Name + " (" + String.Join(", ", info.GetParameters().Select(n => n.ToString())) + " )";
+            Kind = info.MemberType.ToString();
             Type = info.ReturnType.Name;
             if (info.IsStatic) Modifiers.Add("static");
             if (info.IsPrivate) Modifiers.Add("private");
@@ -63,15 +64,15 @@ namespace AA
         public MemberData(EventInfo info)
         {
             Name = info.Name;
-            Kind = "Event";
+            Kind = info.MemberType.ToString();
             Type = info.EventHandlerType.Name;
             if (info.IsMulticast) Modifiers.Add("multicast");
         }
 
         public MemberData(ConstructorInfo info)
         {
-            Name = info.Name;
-            Kind = "Constructor";
+            Name = info.Name + " (" + String.Join(", ", info.GetParameters().Select(n => n.ToString())) + ")";
+            Kind = info.MemberType.ToString();
             if (info.IsStatic) Modifiers.Add("static");
             if (info.IsPublic) Modifiers.Add("public");
             if (info.IsPrivate) Modifiers.Add("private");
