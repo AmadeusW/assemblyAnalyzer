@@ -95,7 +95,16 @@ namespace AA
             }
 
             var assemblyCandidateFileName = assemblyFullName.Substring(0, assemblyFullName.IndexOf(',')) + ".dll";
-
+            // First, scan the provided directory
+            foreach (var dll in dllsToAnalyze)
+            {
+                if (dll.EndsWith(assemblyCandidateFileName))
+                {
+                    var loadedAssembly = Assembly.LoadFile(dll);
+                    return loadedAssembly;
+                }
+            }
+            // If this fails, scan the fallback location
             foreach (var dll in moreDlls)
             {
                 if (dll.EndsWith(assemblyCandidateFileName))

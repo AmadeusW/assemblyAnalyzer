@@ -13,7 +13,8 @@ namespace AA
         {
             var dll = Assembly.LoadFile(dllPath);
             var sb = new IndentingStringBuilder();
-            foreach (var type in dll.DefinedTypes.OrderBy(n => n.Name))
+            var types = dll.GetTypes();
+            foreach (var type in types.OrderBy(n => n.Name))
             {
                 Analyze(sb, type);
             }
@@ -48,18 +49,29 @@ namespace AA
         {
             sb.AppendLine(new MemberData(type).ToString());
             sb.IncreaseIndentation();
-
-            Analyze(sb, type.DeclaredConstructors);
-            Analyze(sb, type.DeclaredMethods);
-            Analyze(sb, type.DeclaredEvents);
-            Analyze(sb, type.DeclaredFields);
-            // sb.AppendLine("--- members:"); Analyze(sb, type.DeclaredMembers); sb.AppendLine("---"); // for debugging, reveal all members
-            if (type.DeclaredNestedTypes.Any())
+            try
             {
-                Analyze(sb, type.DeclaredNestedTypes);
+                Analyze(sb, type.DeclaredConstructors);
+                Analyze(sb, type.DeclaredMethods);
+                Analyze(sb, type.DeclaredEvents);
+                Analyze(sb, type.DeclaredFields);
+                // sb.AppendLine("--- members:"); Analyze(sb, type.DeclaredMembers); sb.AppendLine("---"); // for debugging, reveal all members
+                if (type.DeclaredNestedTypes.Any())
+                {
+                    Analyze(sb, type.DeclaredNestedTypes);
+                }
             }
-
-            sb.DecreaseIndentation();
+            catch (ReflectionTypeLoadException ex)
+            {
+                foreach (var e in ex.LoaderExceptions)
+                {
+                    sb.AppendLine($"Error: {type.Name}: {e.Message}");
+                }
+            }
+            finally
+            {
+                sb.DecreaseIndentation();
+            }
         }
     }
 }
