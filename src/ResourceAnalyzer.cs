@@ -12,18 +12,13 @@ namespace AA
 {
     class ResourceAnalyzer : IAnalyzer
     {
-        string ildasmLocation = @"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\ildasm.exe";
-        string tempLocation;
-
-        public ResourceAnalyzer()
-        {
-            tempLocation = Path.Combine(Path.GetTempPath(), "AssemblyAnalyzer");
-            Directory.CreateDirectory(tempLocation);
-        }
+        const string ildasmLocation = @"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\ildasm.exe";
 
         public string Analyze(string dllPath)
         {
             var dllName = Path.GetFileNameWithoutExtension(dllPath);
+            var tempLocation = Path.Combine(Path.GetTempPath(), "AssemblyAnalyzer", dllName);
+            CleanAndCreateDirectory(tempLocation);
 
             Process p = new Process();
             p.StartInfo.UseShellExecute = false;
@@ -71,7 +66,41 @@ namespace AA
                 }
                 sb.DecreaseIndentation();
             }
+
             return sb.ToString();
+        }
+
+        private void CleanDirectory(string path)
+        {
+            if (!Directory.Exists(path))
+                return;
+
+            var files = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories);
+            foreach (var file in files)
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch
+                {
+                    Console.WriteLine($"Unable to delete {file}");
+                }
+            }
+            try
+            {
+                Directory.Delete(path);
+            }
+            catch
+            {
+                Console.WriteLine($"Unable to delete {path}");
+            }
+        }
+
+        private void CleanAndCreateDirectory(string path)
+        {
+            CleanDirectory(path);
+            Directory.CreateDirectory(path);
         }
     }
 }
