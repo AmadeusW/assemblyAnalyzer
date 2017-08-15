@@ -11,10 +11,9 @@ namespace AA
     {
         public string Analyze(string dllPath)
         {
-            var dll = Assembly.LoadFile(dllPath);
+            var dll = Assembly.ReflectionOnlyLoadFrom(dllPath);
             var sb = new IndentingStringBuilder();
-            var types = dll.GetTypes();
-            foreach (var type in types.OrderBy(n => n.Name))
+            foreach (var type in dll.DefinedTypes.OrderBy(n => n.Name))
             {
                 Analyze(sb, type);
             }

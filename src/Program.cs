@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Resources;
 
@@ -12,25 +13,29 @@ namespace AA
         static IAnalyzer dllAnalyzer = new ReflectionAnalyzer();
         static IAnalyzer resourceAnalyzer = new ResourceAnalyzer();
         static IEnumerable<string> dllsToAnalyze;
-        static IEnumerable<string> moreDlls;
+        static IEnumerable<string> moreDlls = new List<string>();
 
         // Argument 1: Path to a single DLL to analyze or to a directory whose all DLLs will be analyzed
         // Argument 2: Path to directory that will be scanned for dependent assemblies
         // Argument 3: Path to output directory where artifacts will be written to
-        //
+        // 
         // Sample args for debugging:
-        // C:\git\platform\insertion C:\git\platform\src C:\git\platform\output
-        // "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.Text.Internal.dll" "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" C:\git\platform\output\programfiles
-        // D:\assemblies "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" D:\output\programfiles
-        // \\scratch2\scratch\olegtk\insertion "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" D:\output\olegs
+        // C:\git\platform\insertion D:\output\insertion C:\git\platform\src "C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\"
+        // "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.Text.Internal.dll" C:\git\platform\output\programfiles "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE" "C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\UIAutomationProvider.dll"
+        // D:\assemblies D:\output\programfiles "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" "C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\UIAutomationProvider.dll"
+        // \\scratch2\scratch\olegtk\insertion  D:\output\olegs "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" "C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\UIAutomationProvider.dll"
         static void Main(string[] args)
         {
-            if (args.Length != 3) throw new ArgumentException("Usage: AA AnalyzePath AssemblySearchPath OutputPath");
-            var sourcePath = args[0].Trim();
-            var moreDllsPath = args[1].Trim();
-            var outputPath = args[2].Trim();
+            if (args.Length < 3) throw new ArgumentException("Usage: AA AnalyzePath OutputPath [AssemblySearchPath1] [AssemblySearchPath2] ...");
+            var sourcePath = args[0];
+            var outputPath = args[1];
+            for (int i = 2; i < args.Length; i++)
+            {
+                var moreDllsPath = args[i];
+                if (!Directory.Exists(moreDllsPath)) throw new DirectoryNotFoundException($"Directory {moreDllsPath} does not exist");
+                moreDlls = moreDlls.Union(Directory.EnumerateFiles(moreDllsPath, "*.dll", SearchOption.AllDirectories));
+            }
 
-            if (!Directory.Exists(moreDllsPath)) throw new DirectoryNotFoundException($"Directory {moreDllsPath} does not exist");
             if (!Directory.Exists(outputPath)) Directory.CreateDirectory(outputPath);
 
             if (File.Exists(sourcePath))
@@ -45,8 +50,8 @@ namespace AA
                 dllsToAnalyze = Directory.EnumerateFiles(sourcePath, "*.dll", SearchOption.AllDirectories);
             }
 
-            moreDlls = Directory.EnumerateFiles(moreDllsPath, "*.dll", SearchOption.AllDirectories);
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += OnReflectionOnlyAssemblyResolve;
 
             ProcessAllAssemblies(outputPath);
             Console.WriteLine("Done.");
@@ -79,18 +84,26 @@ namespace AA
             }
         }
 
-        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private static Assembly OnReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
         {
             var assemblyFullName = args.Name;
             var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var reflectionLoadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
             var shortName = assemblyFullName.Substring(0, assemblyFullName.IndexOf(','));
 
-            var candidateAssemblies = new List<Assembly>();
+            foreach (var assembly in reflectionLoadedAssemblies)
+            {
+                if (assembly.FullName == assemblyFullName)
+                {
+                    return Assembly.ReflectionOnlyLoad(assemblyFullName);
+                }
+            }
+
             foreach (var assembly in loadedAssemblies)
             {
                 if (assembly.FullName == assemblyFullName)
                 {
-                    return assembly;
+                    return Assembly.ReflectionOnlyLoad(assemblyFullName);
                 }
             }
 
@@ -100,7 +113,7 @@ namespace AA
             {
                 if (dll.EndsWith(assemblyCandidateFileName))
                 {
-                    var loadedAssembly = Assembly.LoadFile(dll);
+                    var loadedAssembly = Assembly.ReflectionOnlyLoadFrom(dll);
                     return loadedAssembly;
                 }
             }
@@ -109,7 +122,7 @@ namespace AA
             {
                 if (dll.EndsWith(assemblyCandidateFileName))
                 {
-                    var loadedAssembly = Assembly.LoadFile(dll);
+                    var loadedAssembly = Assembly.ReflectionOnlyLoadFrom(dll);
                     return loadedAssembly;
                 }
             }
