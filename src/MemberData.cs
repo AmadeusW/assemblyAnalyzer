@@ -24,13 +24,21 @@ namespace AA
 
         public MemberData() { }
 
-        public static MemberData ClassFromIL(string ildasmLine1, string ildasmLine2)
+        static string[] FromBuffer(string buffer) => buffer.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        public static MemberData ClassFromIL(string buffer)
         {
-            var data = ildasmLine1.Split(' ');
+            var data = FromBuffer(buffer);
+            string type = String.Empty;
+            if (data.Reverse().Skip(1).First() == "extends")
+            {
+                type = data.Reverse().Last();
+                data = data.Reverse().Skip(2).Reverse().ToArray();
+            }
             var kind = data.First();
             var name = data.Last();
-            string type;
             IEnumerable<string> modifiers;
+            // TODO interface
             if (data.Skip(1).First() == "interface")
             {
                 kind = "interface";
@@ -39,7 +47,8 @@ namespace AA
             }
             else
             {
-                var typeData = ildasmLine2.Split(' ');
+                kind = "class";
+                var typeData = buffer.Split(' ');
                 type = typeData.Last();
                 modifiers = data.Skip(2).Reverse().Skip(1);
             }
@@ -53,14 +62,25 @@ namespace AA
             };
         }
 
-        public static MemberData MethodFromIL(string ildasmLine1, string ildasmLine2)
+        public static MemberData MethodFromIL(string buffer)
         {
-            var data = ildasmLine1.Split(' ');
+            var data = FromBuffer(buffer);
             var kind = "Method";
-            var name = data.Last();
-            var typeData = ildasmLine2.Split(' ');
-            var type = typeData.Last();
-            var modifiers = data.Skip(1);
+            //var signature = data.SkipWhile(n => n.Contains('('))
+            int index = 0;
+            int signatureStart = 0;
+            int signatureEnd = 0;
+            foreach (var dataPiece in data)
+            {
+                if (dataPiece.Contains('('))
+                    signatureStart = index;
+                if (dataPiece.Contains(')'))
+                    signatureEnd = index;
+                index++;
+            }
+            var type = data.ElementAt(signatureStart - 1);
+            var name = String.Join(" ", data.Skip(signatureStart).Take(signatureEnd - signatureStart + 1));
+            var modifiers = data.Skip(1).Take(signatureStart - 2);
 
             return new MemberData
             {
@@ -71,9 +91,9 @@ namespace AA
             };
         }
 
-        public static MemberData PropertyFromIL(string ildasmLine1)
+        public static MemberData PropertyFromIL(string buffer)
         {
-            var data = ildasmLine1.Split(' ');
+            var data = FromBuffer(buffer);
             var kind = "Property";
             var name = data.Last();
             var type = data.Skip(2).First();
@@ -88,9 +108,27 @@ namespace AA
             };
         }
 
-        public static MemberData FieldFromIL(string ildasmLine1)
+        private static MemberData AssemblyFromIL(string buffer)
         {
-            var data = ildasmLine1.Split(' ');
+            return new MemberData
+            {
+                Name = FromBuffer(buffer).Last(),
+                Kind = "Reference"
+            };
+        }
+
+        private static MemberData ConstructorFromIL(string buffer)
+        {
+            return new MemberData
+            {
+                Name = FromBuffer(buffer).Reverse().Skip(2).First(),
+                Kind = "Constructor"
+            };
+        }
+
+        public static MemberData FieldFromIL(string buffer)
+        {
+            var data = FromBuffer(buffer);
             var kind = "Field";
             var name = data.Last();
             var type = data.Skip(2).First();
@@ -103,6 +141,42 @@ namespace AA
                 Type = type,
                 Modifiers = new List<string> { modifiers },
             };
+        }
+
+        internal static MemberData FromIL(string buffer)
+        {
+            if (buffer.StartsWith(".assembly"))
+            {
+                return MemberData.AssemblyFromIL(buffer);
+            }
+            else if (buffer.StartsWith(".class"))
+            {
+                return MemberData.ClassFromIL(buffer);
+            }
+            else if (buffer.StartsWith(".method"))
+            {
+                return MemberData.MethodFromIL(buffer);
+            }
+            else if (buffer.StartsWith(".property"))
+            {
+                return MemberData.PropertyFromIL(buffer);
+            }
+            else if (buffer.StartsWith(".field"))
+            {
+                return MemberData.FieldFromIL(buffer);
+            }
+            return null;
+            /*
+            else if (buffer.StartsWith(".custom"))
+            {
+                return MemberData.ConstructorFromIL(buffer);
+            }
+            return new MemberData
+            {
+                Kind = "Unknown",
+                Name = buffer,
+            };
+            */
         }
 
         public MemberData(FieldInfo info)

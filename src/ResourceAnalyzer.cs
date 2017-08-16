@@ -48,63 +48,78 @@ namespace AA
         {
             var ilFile = Directory.EnumerateFiles(tempLocation, "*.txt").Single();
 
-            bool relevantContent = false;
-            string previousLine = String.Empty;
+            int currentIndentation = 0; // what brace level are we on
+            Stack<int> relevantBlocks = new Stack<int>(); // which braces to process
+            relevantBlocks.Push(0); // we are always interested in the base level
+            string buffer = String.Empty; // here we place processed lines
+            bool fillingBuffer = false; // are we adding lines to buffer?
 
             foreach (var rawLine in File.ReadLines(ilFile))
             {
                 var line = rawLine.Trim();
-                if (!String.IsNullOrEmpty(previousLine))
+                var top = relevantBlocks.Peek();
+                if (line.StartsWith(".") && relevantBlocks.Peek() == currentIndentation)
                 {
-                    if (previousLine.StartsWith(".class"))
-                    {
-                        var data = MemberData.ClassFromIL(previousLine, line);
-                        sb.AppendLine(data.ToString());
-
-                        relevantContent = true;
-                        sb.IncreaseIndentation();
+                    if (fillingBuffer)
+                    {   // We reached the next item
+                        fillingBuffer = false;
+                        // Process buffer:
+                        var data = MemberData.FromIL(buffer);
+                        buffer = String.Empty;
+                        if (data != null)
+                            sb.AppendLine(data.ToString());
                     }
-                    if (previousLine.StartsWith(".method"))
-                    {
-                        var data = MemberData.MethodFromIL(previousLine, line);
-                        sb.AppendLine(data.ToString());
-                    }
-                    previousLine = String.Empty;
+                    fillingBuffer = true;
                 }
-                else
+                else if (line.StartsWith("{"))
                 {
-                    if (line.StartsWith("}"))
-                    {
-                        if (relevantContent)
+                    currentIndentation++;
+                    if (fillingBuffer)
+                    { // We reached the end of the current declaration
+                        fillingBuffer = false;
+                        // Process buffer:
+                        var data = MemberData.FromIL(buffer);
+                        buffer = String.Empty;
+                        if (data != null)
                         {
-                            sb.DecreaseIndentation();
-                            relevantContent = false;
+                            sb.AppendLine(data.ToString());
+                            if (data.Kind == "class" || data.Kind == "interface")
+                            {
+                                sb.IncreaseIndentation();
+                                relevantBlocks.Push(currentIndentation); // we are interested in next indentation level
+                            }
                         }
                     }
-                    else if (line.StartsWith(".assembly"))
-                    {
-                        sb.AppendLine($"Reference {line.Split(' ').Last()}");
+                }
+                else if (line.StartsWith("}"))
+                {
+                    if (relevantBlocks.Peek() == currentIndentation)
+                        relevantBlocks.Pop();
+
+                    currentIndentation--;
+                    // End of the block
+
+                    if (fillingBuffer)
+                    { // We reached the end of the current declaration
+                        fillingBuffer = false;
+                        // Process buffer:
+                        var data = MemberData.FromIL(buffer);
+                        buffer = String.Empty;
+                        if (data != null)
+                            sb.AppendLine(data.ToString());
                     }
-                    else if (line.StartsWith(".class"))
-                    {
-                        previousLine = line;
-                    }
-                    else if (line.StartsWith(".method"))
-                    {
-                        previousLine = line;
-                    }
-                    else if (line.StartsWith(".property"))
-                    {
-                        previousLine = line;
-                    }
-                    else if (line.StartsWith(".field"))
-                    {
-                        var data = MemberData.FieldFromIL(line);
-                        sb.AppendLine(data.ToString());
-                    }
-                    // todo: add constructor: .custom
+                }
+
+                if (fillingBuffer)
+                {
+                    buffer += line + " ";
                 }
             }
+        }
+
+        private void processBuffer()
+        {
+            throw new NotImplementedException();
         }
 
         private void processResources(IndentingStringBuilder sb, String tempLocation)
