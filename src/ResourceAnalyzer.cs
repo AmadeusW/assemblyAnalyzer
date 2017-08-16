@@ -13,24 +13,28 @@ namespace AA
     class ResourceAnalyzer : IAnalyzer
     {
         const string ildasmLocation = @"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\ildasm.exe";
+        int assemblyId = 0;
 
         public string Analyze(string dllPath)
         {
             var dllName = Path.GetFileNameWithoutExtension(dllPath);
-            var tempLocation = Path.Combine(Path.GetTempPath(), "AssemblyAnalyzer", dllName);
+            //var tempLocation = Path.Combine(Path.GetTempPath(), "AssemblyAnalyzer", dllName);
+            var tempLocation = Path.Combine(Path.GetTempPath(), "aa", (assemblyId++).ToString());
             CleanAndCreateDirectory(tempLocation);
 
-            Process p = new Process();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.FileName = ildasmLocation;
-            p.StartInfo.Arguments = $"{dllPath} /out={dllName}.txt /nobar";
-            p.StartInfo.WorkingDirectory = tempLocation;
-            p.Start();
+            using (var p = new Process())
+            {
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.FileName = ildasmLocation;
+                p.StartInfo.Arguments = $"{dllPath} /out={dllName}.txt /nobar";
+                p.StartInfo.WorkingDirectory = tempLocation+"\\";
+                p.Start();
 
-            // To avoid deadlocks, always read the output stream first and then wait.
-            string output = p.StandardOutput.ReadToEnd();
-            p.WaitForExit();
+                // To avoid deadlocks, always read the output stream first and then wait.
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+            }
 
             var sb = new IndentingStringBuilder();
 
@@ -43,17 +47,10 @@ namespace AA
         private void processIL(IndentingStringBuilder sb, String tempLocation)
         {
             var ilFile = Directory.EnumerateFiles(tempLocation, "*.txt").Single();
-            foreach (var line in File.ReadLines(ilFile))
-            {
 
-            }
-        }
-
-        private static void ReadFile(string ilFile)
-        {
-            var sb = new IndentingStringBuilder();
             bool relevantContent = false;
             string previousLine = String.Empty;
+
             foreach (var rawLine in File.ReadLines(ilFile))
             {
                 var line = rawLine.Trim();
