@@ -48,9 +48,12 @@ namespace AA
 
             int currentIndentation = 0; // what brace level are we on
             Stack<int> relevantBlocks = new Stack<int>(); // which braces to process
+            Stack<SimpleMemberData> memberStack = new Stack<SimpleMemberData>();
             relevantBlocks.Push(0); // we are always interested in the base level
             string buffer = String.Empty; // here we place processed lines
             bool fillingBuffer = false; // are we adding lines to buffer?
+
+            var members = new List<SimpleMemberData>();
 
             foreach (var rawLine in File.ReadLines(ilFile))
             {
@@ -62,10 +65,19 @@ namespace AA
                     {   // We reached the next item
                         fillingBuffer = false;
                         // Process buffer:
-                        var data = MemberData.FromIL(buffer);
+                        var data = SimpleMemberData.FromIL(buffer);
                         buffer = String.Empty;
                         if (data != null)
-                            sb.AppendLine(data.ToString());
+                        {
+                            if (memberStack.Any())
+                            {
+                                memberStack.Peek().Nodes.Add(data);
+                            }
+                            else
+                            {
+                                members.Add(data);
+                            }
+                        }
                     }
                     fillingBuffer = true;
                 }
@@ -76,14 +88,22 @@ namespace AA
                     { // We reached the end of the current declaration
                         fillingBuffer = false;
                         // Process buffer:
-                        var data = MemberData.FromIL(buffer);
+                        var data = SimpleMemberData.FromIL(buffer);
                         buffer = String.Empty;
                         if (data != null)
                         {
-                            sb.AppendLine(data.ToString());
+                            if (memberStack.Any())
+                            {
+                                memberStack.Peek().Nodes.Add(data);
+                            }
+                            else
+                            {
+                                members.Add(data);
+                            }
+
                             if (data.Kind == "Class" || data.Kind == "Interface")
                             {
-                                sb.IncreaseIndentation();
+                                memberStack.Push(data);
                                 relevantBlocks.Push(currentIndentation); // we are interested in next indentation level
                             }
                         }
@@ -93,7 +113,7 @@ namespace AA
                 {
                     if (relevantBlocks.Peek() == currentIndentation)
                     {
-                        sb.DecreaseIndentation();
+                        memberStack.Pop();
                         relevantBlocks.Pop();
                     }
 
@@ -104,10 +124,17 @@ namespace AA
                     { // We reached the end of the current declaration
                         fillingBuffer = false;
                         // Process buffer:
-                        var data = MemberData.FromIL(buffer);
+                        var data = SimpleMemberData.FromIL(buffer);
                         buffer = String.Empty;
-                        if (data != null)
-                            sb.AppendLine(data.ToString());
+
+                        if (memberStack.Any())
+                        {
+                            memberStack.Peek().Nodes.Add(data);
+                        }
+                        else
+                        {
+                            members.Add(data);
+                        }
                     }
                 }
 
@@ -115,6 +142,22 @@ namespace AA
                 {
                     buffer += line + " ";
                 }
+            }
+
+            foreach (var member in members.OrderBy(n => n.Content))
+            {
+                OutputMemberData(member, sb);
+            }
+        }
+
+        private void OutputMemberData(SimpleMemberData member, IndentingStringBuilder sb)
+        {
+            sb.AppendLine(member.ToString());
+            foreach (var child in member.Nodes.OrderBy(n => n.Content))
+            {
+                sb.IncreaseIndentation();
+                OutputMemberData(child, sb);
+                sb.DecreaseIndentation();
             }
         }
 
