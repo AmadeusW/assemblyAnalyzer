@@ -83,7 +83,7 @@ namespace AA
                         if (data != null)
                         {
                             sb.AppendLine(data.ToString());
-                            if (data.Kind == "class" || data.Kind == "interface")
+                            if (data.Kind == "Class" || data.Kind == "Interface")
                             {
                                 sb.IncreaseIndentation();
                                 relevantBlocks.Push(currentIndentation); // we are interested in next indentation level

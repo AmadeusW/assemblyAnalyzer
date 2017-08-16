@@ -41,13 +41,13 @@ namespace AA
             // TODO interface
             if (data.Skip(1).First() == "interface")
             {
-                kind = "interface";
+                kind = "Interface";
                 type = String.Empty;
                 modifiers = data.Skip(1).Reverse().Skip(1);
             }
             else
             {
-                kind = "class";
+                kind = "Class";
                 var typeData = buffer.Split(' ');
                 type = typeData.Last();
                 modifiers = data.Skip(2).Reverse().Skip(1);

@@ -67,7 +67,7 @@ namespace AA
                 {
                     var savePath = Path.Combine(outputPath, name + ".txt");
                     //File.WriteAllText(savePath, dllAnalyzer.Analyze(dll));
-                    File.AppendAllText(savePath, resourceAnalyzer.Analyze(dll));
+                    File.WriteAllText(savePath, resourceAnalyzer.Analyze(dll));
                     Console.WriteLine($"OK: {name}");
                 }
                 catch (ReflectionTypeLoadException ex)
