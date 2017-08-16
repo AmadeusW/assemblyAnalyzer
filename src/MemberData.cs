@@ -12,19 +12,97 @@ namespace AA
         private EventInfo e;
         private ConstructorInfo c;
 
-        public string Name { get; }
-        public List<string> Modifiers { get; } = new List<string>();
-        public string Type { get; }
-        public string Kind { get; }
+        public string Name { get; set; }
+        public List<string> Modifiers { get; set; } = new List<string>();
+        public string Type { get; set; }
+        public string Kind { get; set; }
 
         public override string ToString()
         {
             return $"{Kind} {Name} {Type} {String.Join(" ", Modifiers.OrderBy(n => n))}";
         }
 
-        public MemberData(string name)
+        public MemberData() { }
+
+        public static MemberData ClassFromIL(string ildasmLine1, string ildasmLine2)
         {
-            Name = name;
+            var data = ildasmLine1.Split(' ');
+            var kind = data.First();
+            var name = data.Last();
+            string type;
+            IEnumerable<string> modifiers;
+            if (data.Skip(1).First() == "interface")
+            {
+                kind = "interface";
+                type = String.Empty;
+                modifiers = data.Skip(1).Reverse().Skip(1);
+            }
+            else
+            {
+                var typeData = ildasmLine2.Split(' ');
+                type = typeData.Last();
+                modifiers = data.Skip(2).Reverse().Skip(1);
+            }
+
+            return new MemberData
+            {
+                Name = name,
+                Kind = kind,
+                Type = type,
+                Modifiers = modifiers.ToList(),
+            };
+        }
+
+        public static MemberData MethodFromIL(string ildasmLine1, string ildasmLine2)
+        {
+            var data = ildasmLine1.Split(' ');
+            var kind = "Method";
+            var name = data.Last();
+            var typeData = ildasmLine2.Split(' ');
+            var type = typeData.Last();
+            var modifiers = data.Skip(1);
+
+            return new MemberData
+            {
+                Name = name,
+                Kind = kind,
+                Type = type,
+                Modifiers = modifiers.ToList(),
+            };
+        }
+
+        public static MemberData PropertyFromIL(string ildasmLine1)
+        {
+            var data = ildasmLine1.Split(' ');
+            var kind = "Property";
+            var name = data.Last();
+            var type = data.Skip(2).First();
+            var modifiers = data.Skip(1).First();
+
+            return new MemberData
+            {
+                Name = name,
+                Kind = kind,
+                Type = type,
+                Modifiers = new List<string> { modifiers },
+            };
+        }
+
+        public static MemberData FieldFromIL(string ildasmLine1)
+        {
+            var data = ildasmLine1.Split(' ');
+            var kind = "Field";
+            var name = data.Last();
+            var type = data.Skip(2).First();
+            var modifiers = data.Skip(1).First();
+
+            return new MemberData
+            {
+                Name = name,
+                Kind = kind,
+                Type = type,
+                Modifiers = new List<string> { modifiers },
+            };
         }
 
         public MemberData(FieldInfo info)

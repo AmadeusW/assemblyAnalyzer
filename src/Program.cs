@@ -51,7 +51,7 @@ namespace AA
             }
 
             
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += OnReflectionOnlyAssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve += OnReflectionOnlyAssemblyResolve;
 
             ProcessAllAssemblies(outputPath);
             Console.WriteLine("Done.");
@@ -66,7 +66,7 @@ namespace AA
                 try
                 {
                     var savePath = Path.Combine(outputPath, name + ".txt");
-                    File.WriteAllText(savePath, dllAnalyzer.Analyze(dll));
+                    //File.WriteAllText(savePath, dllAnalyzer.Analyze(dll));
                     File.AppendAllText(savePath, resourceAnalyzer.Analyze(dll));
                     Console.WriteLine($"OK: {name}");
                 }
@@ -88,22 +88,13 @@ namespace AA
         {
             var assemblyFullName = args.Name;
             var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            var reflectionLoadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
             var shortName = assemblyFullName.Substring(0, assemblyFullName.IndexOf(','));
-
-            foreach (var assembly in reflectionLoadedAssemblies)
-            {
-                if (assembly.FullName == assemblyFullName)
-                {
-                    return Assembly.ReflectionOnlyLoad(assemblyFullName);
-                }
-            }
 
             foreach (var assembly in loadedAssemblies)
             {
                 if (assembly.FullName == assemblyFullName)
                 {
-                    return Assembly.ReflectionOnlyLoad(assemblyFullName);
+                    return Assembly.LoadFile(assemblyFullName);
                 }
             }
 
@@ -113,7 +104,7 @@ namespace AA
             {
                 if (dll.EndsWith(assemblyCandidateFileName))
                 {
-                    var loadedAssembly = Assembly.ReflectionOnlyLoadFrom(dll);
+                    var loadedAssembly = Assembly.LoadFile(dll);
                     return loadedAssembly;
                 }
             }
@@ -122,7 +113,7 @@ namespace AA
             {
                 if (dll.EndsWith(assemblyCandidateFileName))
                 {
-                    var loadedAssembly = Assembly.ReflectionOnlyLoadFrom(dll);
+                    var loadedAssembly = Assembly.LoadFile(dll);
                     return loadedAssembly;
                 }
             }

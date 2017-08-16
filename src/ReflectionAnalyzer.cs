@@ -11,7 +11,7 @@ namespace AA
     {
         public string Analyze(string dllPath)
         {
-            var dll = Assembly.ReflectionOnlyLoadFrom(dllPath);
+            var dll = Assembly.LoadFrom(dllPath);
             var sb = new IndentingStringBuilder();
             foreach (var type in dll.DefinedTypes.OrderBy(n => n.Name))
             {
@@ -31,7 +31,7 @@ namespace AA
             else if (member is EventInfo e)
                 sb.AppendLine(new MemberData(e).ToString());
             else
-                sb.AppendLine(new MemberData(member.Name).ToString());
+                throw new NotSupportedException($"Unknown member kind: {member.Name}");
         }
 
         private void Analyze(IndentingStringBuilder sb, IEnumerable<MemberInfo> members)

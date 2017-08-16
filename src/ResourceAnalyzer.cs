@@ -34,11 +34,89 @@ namespace AA
 
             var sb = new IndentingStringBuilder();
 
+            processIL(sb, tempLocation);
+            processResources(sb, tempLocation);
+
+            return sb.ToString();
+        }
+
+        private void processIL(IndentingStringBuilder sb, String tempLocation)
+        {
+            var ilFile = Directory.EnumerateFiles(tempLocation, "*.txt").Single();
+            foreach (var line in File.ReadLines(ilFile))
+            {
+
+            }
+        }
+
+        private static void ReadFile(string ilFile)
+        {
+            var sb = new IndentingStringBuilder();
+            bool relevantContent = false;
+            string previousLine = String.Empty;
+            foreach (var rawLine in File.ReadLines(ilFile))
+            {
+                var line = rawLine.Trim();
+                if (!String.IsNullOrEmpty(previousLine))
+                {
+                    if (previousLine.StartsWith(".class"))
+                    {
+                        var data = MemberData.ClassFromIL(previousLine, line);
+                        sb.AppendLine(data.ToString());
+
+                        relevantContent = true;
+                        sb.IncreaseIndentation();
+                    }
+                    if (previousLine.StartsWith(".method"))
+                    {
+                        var data = MemberData.MethodFromIL(previousLine, line);
+                        sb.AppendLine(data.ToString());
+                    }
+                    previousLine = String.Empty;
+                }
+                else
+                {
+                    if (line.StartsWith("}"))
+                    {
+                        if (relevantContent)
+                        {
+                            sb.DecreaseIndentation();
+                            relevantContent = false;
+                        }
+                    }
+                    else if (line.StartsWith(".assembly"))
+                    {
+                        sb.AppendLine($"Reference {line.Split(' ').Last()}");
+                    }
+                    else if (line.StartsWith(".class"))
+                    {
+                        previousLine = line;
+                    }
+                    else if (line.StartsWith(".method"))
+                    {
+                        previousLine = line;
+                    }
+                    else if (line.StartsWith(".property"))
+                    {
+                        previousLine = line;
+                    }
+                    else if (line.StartsWith(".field"))
+                    {
+                        var data = MemberData.FieldFromIL(line);
+                        sb.AppendLine(data.ToString());
+                    }
+                    // todo: add constructor: .custom
+                }
+            }
+        }
+
+        private void processResources(IndentingStringBuilder sb, String tempLocation)
+        {
             var availableResources = Directory.EnumerateFiles(tempLocation, "*.resources");
             if (!availableResources.Any())
             {
                 sb.AppendLine("No embedded resources.");
-                return sb.ToString();
+                return;
             }
 
             sb.AppendLine("Resources:");
@@ -66,8 +144,6 @@ namespace AA
                 }
                 sb.DecreaseIndentation();
             }
-
-            return sb.ToString();
         }
 
         private void CleanDirectory(string path)
