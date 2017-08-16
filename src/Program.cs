@@ -24,6 +24,7 @@ namespace AA
         // "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.Text.Internal.dll" C:\git\platform\output\programfiles "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE" "C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\UIAutomationProvider.dll"
         // D:\assemblies D:\output\programfiles "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" "C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\UIAutomationProvider.dll"
         // \\scratch2\scratch\olegtk\insertion  D:\output\olegs "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" "C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\UIAutomationProvider.dll"
+        // "D:\output\for comparison" D:\output\vsuvscore \\cpvsbuild\Drops\VS\vsuvscore\raw\26815.4000\binaries.x86chk\SuiteBin
         static void Main(string[] args)
         {
             if (args.Length < 3) throw new ArgumentException("Usage: AA AnalyzePath OutputPath [AssemblySearchPath1] [AssemblySearchPath2] ...");

@@ -143,40 +143,28 @@ namespace AA
             };
         }
 
+        internal static MemberData Lazy(string buffer)
+        {
+            var data = FromBuffer(buffer);
+            var niceKind = data.First().Substring(1, 1).ToUpper() + data.First().Substring(2);
+            var everythingElse = data.Skip(1);
+            return new MemberData
+            {
+                Kind = niceKind,
+                Name = String.Join(" ", everythingElse)
+            };
+        }
+
         internal static MemberData FromIL(string buffer)
         {
             if (buffer.StartsWith(".assembly"))
             {
                 return MemberData.AssemblyFromIL(buffer);
             }
-            else if (buffer.StartsWith(".class"))
+            else
             {
-                return MemberData.ClassFromIL(buffer);
+                return MemberData.Lazy(buffer);
             }
-            else if (buffer.StartsWith(".method"))
-            {
-                return MemberData.MethodFromIL(buffer);
-            }
-            else if (buffer.StartsWith(".property"))
-            {
-                return MemberData.PropertyFromIL(buffer);
-            }
-            else if (buffer.StartsWith(".field"))
-            {
-                return MemberData.FieldFromIL(buffer);
-            }
-            return null;
-            /*
-            else if (buffer.StartsWith(".custom"))
-            {
-                return MemberData.ConstructorFromIL(buffer);
-            }
-            return new MemberData
-            {
-                Kind = "Unknown",
-                Name = buffer,
-            };
-            */
         }
 
         public MemberData(FieldInfo info)

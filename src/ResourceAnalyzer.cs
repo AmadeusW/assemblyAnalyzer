@@ -13,22 +13,20 @@ namespace AA
     class ResourceAnalyzer : IAnalyzer
     {
         const string ildasmLocation = @"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\ildasm.exe";
-        int assemblyId = 0;
 
         public string Analyze(string dllPath)
         {
             var dllName = Path.GetFileNameWithoutExtension(dllPath);
-            //var tempLocation = Path.Combine(Path.GetTempPath(), "AssemblyAnalyzer", dllName);
-            var tempLocation = Path.Combine(Path.GetTempPath(), "aa", (assemblyId++).ToString());
+            var tempLocation = Path.Combine(Path.GetTempPath(), "aa", dllName);
             CleanAndCreateDirectory(tempLocation);
+            var outputPath = Path.Combine(tempLocation, $"{dllName}.txt");
 
             using (var p = new Process())
             {
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.FileName = ildasmLocation;
-                p.StartInfo.Arguments = $"{dllPath} /out={dllName}.txt /nobar";
-                p.StartInfo.WorkingDirectory = tempLocation+"\\";
+                p.StartInfo.Arguments = $"\"{dllPath}\" /out=\"{outputPath}\" /nobar";
                 p.Start();
 
                 // To avoid deadlocks, always read the output stream first and then wait.
@@ -94,7 +92,10 @@ namespace AA
                 else if (line.StartsWith("}"))
                 {
                     if (relevantBlocks.Peek() == currentIndentation)
+                    {
+                        sb.DecreaseIndentation();
                         relevantBlocks.Pop();
+                    }
 
                     currentIndentation--;
                     // End of the block
