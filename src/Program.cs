@@ -16,14 +16,10 @@ namespace AA
         static IEnumerable<string> moreDlls = new List<string>();
 
         // Argument 1: Path to a single DLL to analyze or to a directory whose all DLLs will be analyzed
-        // Argument 2: Path to directory that will be scanned for dependent assemblies
-        // Argument 3: Path to output directory where artifacts will be written to
+        // Argument 2: Path to output directory where artifacts will be written to
+        // Arguments 3+: Path to directory that will be scanned for dependent assemblies (current not applicable since we're not using reflection any more)
         // 
         // Sample args for debugging:
-        // "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE\PrivateAssemblies\Microsoft.VisualStudio.Text.Internal.dll" C:\git\platform\output\programfiles "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE" "C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\UIAutomationProvider.dll"
-        // D:\assemblies D:\output\programfiles "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" "C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\UIAutomationProvider.dll"
-        // \\scratch2\scratch\olegtk\insertion  D:\output\olegs "C:\Program Files (x86)\Microsoft Visual Studio\Dog153\Enterprise\Common7\IDE" "C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\UIAutomationProvider.dll"
-        // recently used:
         // "D:\output\for comparison" D:\output\vsuvscore \\cpvsbuild\Drops\VS\vsuvscore\raw\26815.4000\binaries.x86chk\SuiteBin
         // C:\git\platform\insertion D:\output\insertion C:\git\platform\src
         static void Main(string[] args)
